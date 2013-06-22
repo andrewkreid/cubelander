@@ -37,6 +37,10 @@ var landerSize = 30;
 var landerVX = 0;
 var landerVY = 0;
 
+var gravityY = 0.05;
+
+var thrusterY = -0.07;
+
 // Viewport (GU)
 var viewX_TL = 0;    // TL = TopLeft
 var viewY_TL = 0;
@@ -46,6 +50,23 @@ var viewY_BR = 1000;
 // Viewport size in screen units (SU)
 var screenWidth = 600;
 var screenHeight = 600;
+
+
+var mouseDown = 0;
+
+document.body.onmousedown = function() {
+    ++mouseDown;
+}
+document.body.onmouseup = function() {
+    --mouseDown;
+}
+
+function initLander() {
+    landerX = 500;
+    landerY = 70;
+    landerVY = 0;
+    landerVX = 0;
+}
 
 function worldToScreen(x, y) {
     var viewToScreenScaleX = screenWidth / (viewX_BR - viewX_TL);
@@ -88,6 +109,22 @@ function drawLander() {
 
 function applyPhysics() {
 
+    // gravity
+    landerVY = landerVY + gravityY;
+
+    // TODO: thrusters
+    if(mouseDown) {
+        landerVY = landerVY + thrusterY;
+    }
+
+    landerX = landerX + landerVX;
+    landerY = landerY + landerVY;
+
+    // ground collision
+    if((landerY + landerSize) >= groundY) {
+        landerY = groundY - landerSize;
+        landerVY = 0;
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -172,7 +209,7 @@ function computeFPS() {
 
     var diff = 1000.0 / (sum / previous.length);
 
-    stats.innerHTML = diff.toFixed() + " fps";
+    stats.innerHTML = diff.toFixed(1) + " fps";
 }
 
 // Drawing & Animation
@@ -212,7 +249,7 @@ function wormHole() {
     drawGround();
     drawLander();
 
-    debugPlace.innerHTML =  "worldYmax / screenHeight = " + worldYmax / screenHeight;
+    debugPlace.innerHTML =  "x = " + landerX.toFixed(3) + ", y = " + landerY.toFixed(3) + ", vY = " + landerVY.toFixed(3);
 
     /*
     circles.sort(function (a, b) {
@@ -228,6 +265,8 @@ function wormHole() {
 var wormHoleIntervalID = -1;
 
 function startWormHole() {
+    initLander();
+
     if (wormHoleIntervalID > -1)
         clearInterval(wormHoleIntervalID);
 
